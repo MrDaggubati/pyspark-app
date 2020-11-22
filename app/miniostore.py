@@ -16,8 +16,8 @@ class Storeitminio:
         try:
             # Initialize minioClient with an endpoint and access/secret keys.
             minioClient = Minio(hostname,
-                    access_key='AKIAIdfdfdsdfcaOSFODNN7EXAMPLE',
-                    secret_key='wJalrXUtnFerererewerererwewefwerEMIER/K7MDENG/bPxRfiCYEXAMPLEKEY',
+                    access_key='DUMMY',
+                    secret_key='DUMMY/K7MDENG/bPxRfiCYEXAMPLEKEY',
                     secure=False)
 
             print('testing if this loads into minio local obect store on docker container')
