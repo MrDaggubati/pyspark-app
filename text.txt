@@ -1,0 +1,66 @@
+ENABLE_INIT_DAEMON = "false"
+SPARK_APPLICATION_ARGS = " --conf spark.driver.extraJavaOptions=-Dlog4j.configuration=/app/conf/log4j.properties "
+datafiles = ' --files /app/data/calendar.csv,/app/data/sales.csv,/app/data/products.csv,/app/data/products.csv,/app/data/store.csv'
+SPARK_APPLICATION_ARGS = SPARK_APPLICATION_ARGS + datafiles 
+
+export SPARK_APPLICATION_ARGS
+#export SPARK_MASTER_URL
+export datafiles
+
+
+
+spark = SparkSession \
+    .builder \
+    .appName($APP_NAME) \
+    .config('spark.executor.memory', '4g') \
+    .config('spark.executor.cores', '4') \
+    .config('spark.cores.max', '4') \
+    .config('spark.driver.memory','4g') \
+    .getOrCreate()
+```
+
+
+
+if [ -f "${SPARK_APPLICATION_JAR_LOCATION}" ]; then
+    echo "Submit application ${SPARK_APPLICATION_JAR_LOCATION} with main class ${SPARK_APPLICATION_MAIN_CLASS} to Spark master ${SPARK_MASTER_URL}"
+    echo "Passing arguments ${SPARK_APPLICATION_ARGS}"
+    /spark/bin/spark-submit \
+        --class ${SPARK_APPLICATION_MAIN_CLASS} \
+        --master ${SPARK_MASTER_URL} \
+        ${SPARK_SUBMIT_ARGS} \
+        ${SPARK_APPLICATION_JAR_LOCATION} ${SPARK_APPLICATION_ARGS}
+else
+    echo SPARK_APPLICATION_PYTHON_LOCATION
+
+    if [ -f "${SPARK_APPLICATION_PYTHON_LOCATION}" ]; then
+        echo "Submit application ${SPARK_APPLICATION_PYTHON_LOCATION} to Spark master ${SPARK_MASTER_URL}"
+        echo "Passing arguments ${SPARK_APPLICATION_ARGS}"
+        PYSPARK_PYTHON=python3 /spark/bin/spark-submit \
+            --master ${SPARK_MASTER_URL} \
+            ${SPARK_SUBMIT_ARGS} \
+            ${SPARK_APPLICATION_PYTHON_LOCATION} ${SPARK_APPLICATION_ARGS}
+    else
+        echo "Not recognized application."
+    fi
+fi
+/finish-step.sh
+bash-5.0# env
+HOSTNAME=708cde25e665
+PYTHONHASHSEED=1
+INIT_DAEMON_BASE_URI=http://identifier/init-daemon
+PWD=/
+HOME=/root
+SPARK_APPLICATION_MAIN_CLASS=my.main.Application
+SPARK_MASTER_PORT=7077
+SPARK_APPLICATION_ARGS=
+ENABLE_INIT_DAEMON=true
+TERM=xterm
+INIT_DAEMON_STEP=spark_master_init
+HADOOP_VERSION=2.7
+SPARK_VERSION=2.4.7
+SHLVL=1
+SPARK_APPLICATION_JAR_LOCATION=/app/application.jar
+SPARK_APPLICATION_PYTHON_LOCATION=/app/app.py
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+SPARK_MASTER_NAME=spark-master
+_=/usr/bin/env

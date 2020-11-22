@@ -1,0 +1,4 @@
+
+ENABLE_INIT_DAEMON = "false"
+SPARK_APPLICATION_ARGS = " --conf spark.driver.extraJavaOptions=-Dlog4j.configuration=/app/conf/log4j.properties  --files /app/data/calendar.csv,/app/data/sales.csv,/app/data/products.csv,/app/data/products.csv,/app/data/store.csv'
+
