@@ -9,7 +9,7 @@ class Storeitminio:
     """
     stores into a local minio objectstore 
     """
-    hostname=$MINIO_HOSTURL
+    hostname="localhost:9000"
 
     def mintest():
         
