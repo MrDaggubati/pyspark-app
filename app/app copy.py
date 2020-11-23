@@ -4,9 +4,6 @@ import sys
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession,DataFrame
 
-from dependencies.spark import start_spark
-
-
 from dataextractor import Extractor
 from datasanitizer import Sanitizer
 from datatransformer import Transformer
@@ -15,8 +12,8 @@ from consumption import ConsumptionReport
 
 import miniostore as ms
 
-
 def create_spark_session():
+
     spark = SparkSession \
         .builder \
         .appName("ConsumptionReport") \
@@ -30,31 +27,20 @@ def create_spark_session():
     # spark.conf.get("spark.sql.crossJoin.enabled")
 
 
-def extract(spark,config,spark_files):
+def extract(spark):
     """
     Extracts data from csv files
     """
-    print('what is the data type for this ',config)
+    
     try:
-        # localdata = config('datainapp')
-        localdata = 'Y'
-        if localdata == 'Y':
-           filepaths = {
-                'sales': 'file:///app/data/sales.csv',
-                'product': 'file:///app/data/product.csv',
-                'calendar': 'file:///app/data/calendar.csv',
-                'store': 'file:///app/data/store.csv'
-                 } 
-        else:
-            #get current working directory and build a dictionary to  pass the files.
-            filepaths = {
-                'sales': 'sales.csv',
-                'product': 'product.csv',
-                'calendar': 'calendar.csv',
-                'store': 'store.csv'
-                 }
-        
-            
+        pass
+        filepaths = {
+           'sales': 'file:///app/data/sales.csv',
+           'product': 'file:///app/data/product.csv',
+           'calendar': 'file:///app/data/calendar.csv',
+           'store': 'file:///app/data/store.csv'
+        }
+       
         extractor = Extractor(spark, filepaths)
 
         df_calendar = extractor.get_calendar_data()
@@ -97,18 +83,28 @@ def validate(
     assert(validator.contain_data(df_product))
 
 
-def spark_steps(spark,log,config,spark_files):
-    
+if __name__ == "__main__":
 
-    log.warn('spark batch job steps being executed')
-    df_calendar, df_sales, df_product, df_store = extract(spark,config,spark_files)
 
-    log.warn('spark clean job steps execution started')
+    # def ringup():
+    #      try:
+    #          ms.Storeitminio.mintest()
+    #      except Exception as minioerrors:
+    #          print('oops minio might have got dies on ou ',minioerrors)  
+
+    # ringup()
+    # print('die local dev environment loading into minio ..  ---------------------------------- ')
+    # raise sys.exit(0)
+
+    spark = create_spark_session()
+
+    df_calendar, df_sales, df_product, df_store = extract(spark)
+
+    # clean
     df_calendar_clean = Sanitizer.clean_calendar_data(df_calendar)
     df_product_clean = Sanitizer.clean_product_data(df_product)
     df_store_clean = Sanitizer.clean_store_data(df_store)
 
-    log.warn('building calendar view')
     from_date = "2018-01-01"
     to_date = "2020-01-20"
     df_dates_view = Transformer.build_calendar(spark,from_date,to_date, df_calendar_clean)
@@ -124,28 +120,3 @@ def spark_steps(spark,log,config,spark_files):
 
     # genarate consumption.json report
     ConsumptionReport.gen_consumption_report(spark,df_dates_view, df_sales_info)
-
-    return None
-
-def main():
-    """ this creates the context for the spark session.
-    """
-    # start Spark application and get Spark session, logger and config
-    # here app_config to get specific values that are applicable for your application logic
-    # use spark_Config for all other configs like log level, key spark config to be sued for this job
-    spark, log, config , spark_files = start_spark(
-        app_name='ConsumptionReport',
-        files=['conf/app_config.json'], spark_config= ['conf/submit_config.json'])
-
-    # log that main ETL job is starting
-    log.warn('Spark_job is up-and-running')
-
-    # execute your big data pipeline
-    spark_steps(spark,log,config, spark_files)
-    
-    # log the success and terminate Spark application
-    log.warn(' job exwcution  finished')
-    spark.stop()
-    return None    
-if __name__ == "__main__":
-    main()

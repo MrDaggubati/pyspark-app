@@ -1,0 +1,10 @@
+{
+    "spark.executor.memory":"2048m",
+    "spark.cores.max":"4",
+    "spark.driver.memory":"1024m",
+    "spark.executor.cores":"2",
+    "spark.submit.deployMode":"cluster",
+    "spark.app.name":"CalculateConsumptionData",
+    "spark.mesos.fetcherCache.enable":"false",
+    "spark.master":"local[4]"
+ }
