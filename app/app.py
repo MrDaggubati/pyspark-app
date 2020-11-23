@@ -37,22 +37,22 @@ def extract(spark,config,spark_files):
     print('what is the data type for this ',config)
     try:
         # localdata = config('datainapp')
-        localdata = 'Y'
-        if localdata == 'Y':
-           filepaths = {
+        # localdata = 'Y'
+        # if localdata == 'Y':
+        filepaths = {
                 'sales': 'file:///app/data/sales.csv',
                 'product': 'file:///app/data/product.csv',
                 'calendar': 'file:///app/data/calendar.csv',
                 'store': 'file:///app/data/store.csv'
                  } 
-        else:
-            #get current working directory and build a dictionary to  pass the files.
-            filepaths = {
-                'sales': 'sales.csv',
-                'product': 'product.csv',
-                'calendar': 'calendar.csv',
-                'store': 'store.csv'
-                 }
+        # else:
+        #     #get current working directory and build a dictionary to  pass the files.
+        #     filepaths = {
+        #         'sales': 'sales.csv',
+        #         'product': 'product.csv',
+        #         'calendar': 'calendar.csv',
+        #         'store': 'store.csv'
+        #          }
         
             
         extractor = Extractor(spark, filepaths)

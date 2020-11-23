@@ -15,7 +15,7 @@ appl_args="" #" --files /app/data/calendar.csv,/app/data/sales.csv,/app/data/pro
 export SPARK_HOME=/spark
 export ENABLE_INIT_DAEMON "false"
 
-# export SPARK_MASTER_URL=spark://${SPARK_MASTER_NAME}:${SPARK_MASTER_PORT}
+#export SPARK_MASTER_URL=spark://${SPARK_MASTER_NAME}:${SPARK_MASTER_PORT}
 #export SPARK_APPLICATION_PYTHON_LOCATION="/app/app.py"
 
 export SPARK_MASTER_URL="local[8]"
