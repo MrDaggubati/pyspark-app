@@ -84,9 +84,11 @@ class ConsumptionReport:
 
         # consumption_report.printSchema
         # here in this code base this file is going to save into minio docker volume, an s3 compatible object store
-        consumption_report.write.partitionBy("uniqueid").mode(
-            'overwrite').json("consumption/consumption", encoding='UTF-8')
+        # consumption_report.write.partitionBy("uniqueid").mode(
+            # 'overwrite').json("consumption/consumption", encoding='UTF-8')
 
+        consumption_report.write.mode(
+            'overwrite').json("consumption/consumption", encoding='UTF-8')
     
     
     # def ringup():

@@ -4,5 +4,6 @@
     "spark.driver.memory":"1024m",
     "spark.executor.cores":"2",
     "spark.submit.deployMode":"client",
-    "spark.mesos.fetcherCache.enable":"false"
+    "spark.app.name":"CalculateConsumptionData",
+    "spark.master":"local[4]"
  }

@@ -36,10 +36,10 @@ def extract(spark,config,spark_files):
     """
     print('what is the data type for this ',config)
     try:
-        # # localdata = config('datainapp')
+        # localdata = config('datainapp')
         # localdata = 'Y'
         # if localdata == 'Y':
-           filepaths = {
+        filepaths = {
                 'sales': 'file:///app/data/sales.csv',
                 'product': 'file:///app/data/product.csv',
                 'calendar': 'file:///app/data/calendar.csv',
