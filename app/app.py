@@ -3,10 +3,9 @@ import os
 import sys
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession,DataFrame
+from pyspark.sql.functions import lit, min, col, ceil, count, first, row_number, sum, coalesce, concat
 
 from dependencies.spark import start_spark
-
-
 from dataextractor import Extractor
 from datasanitizer import Sanitizer
 from datatransformer import Transformer
@@ -34,29 +33,16 @@ def extract(spark,config,spark_files):
     """
     Extracts data from csv files
     """
-    print('what is the data type for this ',config)
     try:
-        # localdata = config('datainapp')
-        # localdata = 'Y'
-        # if localdata == 'Y':
         filepaths = {
-                'sales': 'file:///app/data/sales.csv',
-                'product': 'file:///app/data/product.csv',
-                'calendar': 'file:///app/data/calendar.csv',
-                'store': 'file:///app/data/store.csv'
+                'sales': 'file:///data/sales.csv',
+                'product': 'file:///data/product.csv',
+                'calendar': 'file:///data/calendar.csv',
+                'store': 'file:///data/store.csv'
                  } 
-        # else:
-        #     #get current working directory and build a dictionary to  pass the files.
-        #     filepaths = {
-        #         'sales': 'sales.csv',
-        #         'product': 'product.csv',
-        #         'calendar': 'calendar.csv',
-        #         'store': 'store.csv'
-        #          }
-        
+
             
         extractor = Extractor(spark, filepaths)
-
         df_calendar = extractor.get_calendar_data()
         df_sales = extractor.get_sales_data()
         df_product = extractor.get_product_data()
@@ -102,28 +88,45 @@ def spark_steps(spark,log,config,spark_files):
 
     log.warn('spark batch job steps being executed')
     df_calendar, df_sales, df_product, df_store = extract(spark,config,spark_files)
-
-    log.warn('spark clean job steps execution started')
     df_calendar_clean = Sanitizer.clean_calendar_data(df_calendar)
     df_product_clean = Sanitizer.clean_product_data(df_product)
     df_store_clean = Sanitizer.clean_store_data(df_store)
+    df_sales_clean = Sanitizer.clean_sales_data(df_sales)
 
     log.warn('building calendar view')
     from_date = "2018-01-01"
     to_date = "2020-01-20"
     df_dates_view = Transformer.build_calendar(spark,from_date,to_date, df_calendar_clean)
-     
-    print(df_dates_view.count())
 
-    df_sales_data = Transformer.build_sales_facts(spark, df_sales, df_dates_view)
-    # enrich sales data further with product details
-    df_sales_and_prod_view = Transformer.build_sales_prd_view(spark,df_sales_data, df_product_clean)
+    # df_store_clean.write.mode('overwrite').json("/data/output/store", encoding='UTF-8')
+    # df_product_clean.write.mode('overwrite').json("/data/output/product", encoding='UTF-8')
+    # df_sales_clean.write.mode('overwrite').json("/data/output/sale", encoding='UTF-8')
+    # df_dates_view.write.mode('overwrite').json("/data/output/calendar", encoding='UTF-8')
+    
 
-    # join sales and store details
-    df_sales_info = Transformer.build_sales_store_view(spark,df_sales_and_prod_view, df_store_clean)
+    df_consumption_info = df_store_clean.join(df_product_clean,
+            df_store_clean.Joinkey_store
+            == df_product_clean.Joinkey_product).join(df_dates_view,
+            df_store_clean.Joinkey_store
+            == df_dates_view.Joinkey_calendar).join(df_sales_clean,
+            (df_store_clean.storeId == df_sales_clean.storeId)
+            & (df_dates_view.datekey == df_sales_clean.dateId)
+            & (df_product_clean.productId == df_sales_clean.productId),
+            how='left').groupBy(
+        'country',
+        'gender',
+        'division',
+        'category',
+        'year',
+        'WeekOfYear',
+        'channel',
+        ).agg(sum(coalesce('salesUnits', lit(0))).alias('AggSalesUnits'
+              ), sum(coalesce('netSales', lit(0))).alias('AggNetSales'
+              )).orderBy('country', 'gender', 'category', 'WeekOfYear')
 
-    # genarate consumption.json report
-    ConsumptionReport.gen_consumption_report(spark,df_dates_view, df_sales_info)
+
+    # # Genarate consumption.json report
+    ConsumptionReport.gen_consumption_report(spark,df_consumption_info)
 
     return None
 

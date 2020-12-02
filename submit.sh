@@ -15,10 +15,10 @@ appl_args="" #" --files /app/data/calendar.csv,/app/data/sales.csv,/app/data/pro
 export SPARK_HOME=/spark
 export ENABLE_INIT_DAEMON "false"
 
-#export SPARK_MASTER_URL=spark://${SPARK_MASTER_NAME}:${SPARK_MASTER_PORT}
+export SPARK_MASTER_URL=spark://${SPARK_MASTER_NAME}:${SPARK_MASTER_PORT}
 #export SPARK_APPLICATION_PYTHON_LOCATION="/app/app.py"
 
-export SPARK_MASTER_URL="local[8]"
+# export SPARK_MASTER_URL="local[8]"
 
 export SPARK_APPLICATION_ARGS=$appl_args
 export SPARK_SUBMIT_ARGS=""
@@ -27,7 +27,6 @@ export SPARK_APPLICATION_JAR_LOCATION=""
 echo "deployment mode  == ${SPARK_APPLICATION_PYTHON_LOCATION} to Spark master ${SPARK_MASTER_URL}"
 echo "Passing APP arguments " ${SPARK_APPLICATION_ARGS}
 echo "Passing SUBMIT arguments " ${SPARK_SUBMIT_ARGS}
-echo "<<MARKER 3 >> This one ${SPARK_APPLICATION_PYTHON_LOCATION} " 
 
 
 /execute-step.sh
@@ -59,4 +58,4 @@ fi
 
 pwd
 
-ls -lrta /app/consumption/consumption/
+ls -lrta /data/consumption/

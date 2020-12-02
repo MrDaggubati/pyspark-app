@@ -22,17 +22,17 @@ class Sanitizer:
         Returns:
             DataFrame: Spark Dataframe with cleaned calendar data
         """
-
-        df_calendar_clean = df_calendar.select(
-            'weeknumberofseason',
-            F.lpad(
+        df = df_calendar.select(
+              F.lpad(
                 df_calendar['weeknumberofseason'],
                 2,
-                '0') .alias('ISOWEEK'),
+                '0').alias('weeknumberofseason'),
             'datecalendaryear',
             'datecalendarday',
-            'datekey') .drop('weeknumberofseason')
+            'datekey')
 
+
+        df_calendar_clean = df.select("*",F.lit("1").alias("Joinkey_calendar"))
         return df_calendar_clean
 
     @staticmethod
@@ -48,7 +48,7 @@ class Sanitizer:
             DataFrame: Spark Dataframe with cleaned product data
         """
 
-        df_product_clean = df_product.withColumnRenamed(
+        df_product_clean = df_product.select("*",F.lit("1").alias("Joinkey_product")).withColumnRenamed(
             'productid', 'productId')
 
         return df_product_clean
@@ -65,10 +65,26 @@ class Sanitizer:
         Returns:
             DataFrame: Spark Dataframe with cleaned store data
         """
-
-        df_store_clean = df_store.withColumnRenamed(
+        df_store_clean = df_store.select("*",F.lit("1").alias("Joinkey_store")).withColumnRenamed(
             'storeid', 'storeId').withColumn(
             "country", F.trim(
                 df_store.country))
 
+
         return df_store_clean
+
+    @staticmethod
+    def clean_sales_data(
+            df_sales:DataFrame) -> DataFrame:
+        """
+        Cleans df_sales. pads characters and drops the duplicate columns.. etc..
+        Args:
+            df_sales (DataFrame): Spark Dataframe with store data
+
+        Returns:
+            DataFrame: Spark Dataframe with cleaned store data
+        """
+
+        df_sales_clean = df_sales.select("*",F.lit("1").alias("Joinkey_sales"))
+
+        return df_sales_clean

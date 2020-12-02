@@ -15,81 +15,47 @@ class ConsumptionReport:
 
     def gen_consumption_report(
             spark,
-            df_dates_view:DataFrame,
-            df_sales_info:DataFrame) -> DataFrame:
+            df_consumption_info) -> DataFrame:
         """
-        builds and returns df_sales_data.
+        generates a json report for df_consumption_info data .
         Args:
-            takes df_dates_view dataframe, and a df_sales_info dataframe
+            takes df_consumption_info dataframe
 
         Returns:
-            df_sales_data (DataFrame): Spark DataFrame
+            nothing, but stores json report for the same.
 
         issues:
            basically, this is to massag data with those missing week data, ideally. Typical DWH would have all data for all 53 ISO Weeks
            and , but here in the sample data , that was mising, making it a mess to go around to invest those missing records
 
         """
+        df = df_consumption_info.alias("df")
+        print("************************************************************************")
+        print(df.count())    
 
-        # Here this is needed to get weeks from 01-53(typical year calendar)
-        # provided sales data is incomlete and got dificult to get 53 week
-        # views on it.
+        df2 = df.select("*",F.concat_ws('-',df.division,df.country,df.category,df.gender,df.channel,df.year).alias("uniqueid"))
 
-        MISSING_WEEKS = df_dates_view.select(
-            'year', 'iso_week').drop_duplicates()
-        condition = [MISSING_WEEKS.year == df_sales_info.year,
-                     MISSING_WEEKS.iso_week == df_sales_info.ISOWEEK]
-        viewlet = MISSING_WEEKS.join(
-            df_sales_info,
-            condition,
-            "left_outer").select(
-            "uniqueid",
-            "country",
-            "channel",
-            MISSING_WEEKS.year,
-            MISSING_WEEKS.iso_week,
-            "netSales",
-            "salesUnits",
-            "division",
-            "gender",
-            "category")
-
-        viewlet.createOrReplaceTempView('consumption_viewlet')
-        sales_report_view = spark.sql('''
-                                select uniqueid,division,gender,category,country,channel,year,iso_week
-                                      ,sum(netSales) as netSales,sum(salesUnits) as salesUnits
-                                from consumption_viewlet
-                                group by uniqueid,division,gender,category,country,channel,year,iso_week
-                                '''
-                                      )
-
-        consumption_report = sales_report_view.select(
-            "uniqueid",
+        consumption_report = df2.select(
+            'uniqueid',
             "division",
             "gender",
             "category",
             "country",
             "channel",
             "year",
-            'iso_week',
             F.struct(
-                F.col('iso_week'),
-                F.col("netSales")).alias("net_Sales"),
+                F.col('WeekOfYear'),
+                F.col("AggSalesUnits")).alias("SalesUnits"),
             F.struct(
-                F.col('iso_week'),
-                F.col("salesUnits"),
-            ).alias("sales_units"))
+                F.col('WeekOfYear'),
+                F.col("AggNetSales")).alias("NetSales"))
 
         consumption_report.toJSON()
 
         # consumption_report.printSchema
         # here in this code base this file is going to save into minio docker volume, an s3 compatible object store
-        # consumption_report.write.partitionBy("uniqueid").mode(
-            # 'overwrite').json("consumption/consumption", encoding='UTF-8')
+        consumption_report.write.partitionBy("uniqueid").mode('overwrite').json("/data/consumption", encoding='UTF-8')
 
-        consumption_report.write.mode(
-            'overwrite').json("consumption/consumption", encoding='UTF-8')
-    
     
     # def ringup():
     #     try:
